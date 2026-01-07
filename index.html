@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Запретная связь</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #121212;
+            color: #e0e0e0;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        h1 {
+            text-align: center;
+            color: #bb86fc;
+            margin-bottom: 40px;
+        }
+        h2 {
+            text-align: center;
+            color: #03dac6;
+            margin: 40px 0 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s ease forwards;
+        }
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+        }
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .chapter-select {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            background: #2d2d2d;
+            color: #e0e0e0;
+            border: 1px solid #bb86fc;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        select:focus {
+            outline: none;
+            box-shadow: 0 0 10px #bb86fc;
+        }
+        .content {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            min-height: 60vh;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .content.fade-out {
+            opacity: 0 !important;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+        .content.slide-left {
+            animation: slideInLeft 0.6s ease forwards;
+        }
+        .content.slide-right {
+            animation: slideInRight 0.6s ease forwards;
+        }
+        p {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease forwards;
+            animation-stagger: 0.1s;
+        }
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 50px;
+            font-size: 18px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease 0.4s;
+        }
+        .navigation.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .nav-btn {
+            padding: 12px 24px;
+            background: #bb86fc;
+            color: #121212;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        .nav-btn:hover::before {
+            left: 100%;
+        }
+        .nav-btn:hover {
+            background: #cf6679;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(187, 134, 252, 0.4);
+        }
+        .nav-btn.disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        .nav-btn.disabled:hover {
+            background: #333;
+            box-shadow: none;
+        }
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            color: #666;
+            font-size: 14px;
+            opacity: 0;
+            animation: fadeInUp 1s ease 1s forwards;
+        }
+        /* Анимация для загрузки селекта */
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Запретная связь</h1>
+
+    <div class="chapter-select">
+        <label for="chapter">Выберите главу: </label>
+        <select id="chapter" onchange="loadChapter()">
+            <option value="1">Глава 1: Москва. Первая встреча</option>
+            <option value="2">Глава 2: Питер. Тайный чат</option>
+            <option value="3">Глава 3: Сочи. Премиум-анимация (скоро)</option>
+        </select>
+    </div>
+
+    <div class="content" id="content">
+        <!-- Содержимое главы будет загружаться сюда -->
+    </div>
+
+    <div class="navigation" id="navigation">
+        <!-- Навигация будет генерироваться динамически -->
+    </div>
+
+    <footer>© 2026 Запретная связь в мире exteraGram</footer>
+
+    <script>
+        const chapters = {
+            1: {
+                title: "Глава 1: Москва. Первая встреча",
+                content: `
+                    <p>В мире модифицированных Telegram-клиентов существовала своя иерархия. exteraGram был королём — стабильный, мощный, с идеальной Material You темой, кастомными эмодзи и функциями, от которых официальный клиент краснел от зависти. Его пользователи считали себя элитой: те, кто ценит скорость, приватность и скрытые фичи вроде анти-делита и ghost mode.</p>
+
+                    <p>Аю была одной из них. Молодая, дерзкая пользовательница AyuGram — форка exteraGram с ещё более смелыми патчами. Её клиент позволял видеть удалённые сообщения, прятать онлайн и даже подглядывать за чужими историями без следа. Аю любила дразнить: постить провокационные сторис в секретных чатах, где только избранные могли видеть её в тонком белье, с намёком на большее.</p>
+
+                    <p>Экстер — типичный "экстераграммер". Мускулистый парень, фанат стабильности, с неубиваемой Nokia, где exteraGram работал как часы. Он ненавидел баги, обожал чистый интерфейс и всегда выбирал тёмную тему. В чате @exteraChat они пересеклись случайно: она запостила мем про "ghost mode в постели", он ответил сарказмом. С тех пор переписка не прекращалась.</p>
+
+                    <p>Однажды поздно вечером Аю написала: "Скучно. Хочешь увидеть, что скрывает мой AyuGram?"</p>
+
+                    <p>Экстер усмехнулся, пальцы забегали по экрану: "Показывай, если не боишься, что я сохраню с анти-делитом."</p>
+
+                    <p>Она отправила голосовое — дыхание тяжёлое, шёпот: "Тогда приезжай. Я в Москве, недалеко от Давинчика."</p>
+
+                    <p>Через час они были в её квартире — минималистичной, с неоновой подсветкой, как в премиум-теме exteraGram.</p>
+
+                    <p>Аю встретила его в одном коротком топе и шортах, волосы растрёпаны, глаза горят вызовом. "Ты — стабильность, а я — хаос. Посмотрим, кто кого сломает."</p>
+
+                    <p>Экстер прижал её к стене, губы сразу нашли шею. Его руки — сильные, от турников — скользнули под топ, сжимая упругую грудь. Аю застонала, выгибаясь, пальцы впились в его спину. "Быстрее... как твой клиент загружает видео."</p>
+
+                    <p>Он засмеялся хрипло, подхватил её на руки и отнёс в спальню. Одежда полетела на пол. Аю оседлала его, медленно опускаясь, чувствуя, как он заполняет её полностью. Движения были жёсткими, ритмичными: она сверху, контролируя темп, как ghost mode — невидимая, но доминирующая.</p>
+
+                    <p>Экстер перевернул её, войдя сзади, одной рукой сжимая бедро, другой — талию. "Ты такая мокрая... от одного чата?" — прошептал он, ускоряясь. Аю кричала, ногти царапали простыню, тело дрожало от оргазма за оргазмом.</p>
+
+                    <p>Они не останавливались всю ночь: в душе, на кухне, снова в постели. Утром, лёжа в поту и блаженстве, Аю повернулась к нему и улыбнулась: "прсдртя, кстати. За то, что сделал эту ночь незабываемой."</p>
+
+                    <p>Экстер поцеловал её в лоб. "С днем рождения меня? Странно, но принято. Теперь только exteraGram на двоих?"</p>
+
+                    <p>Она кивнула, и их клиенты синхронизировались в секретном чате навсегда.</p>
+                `
+            },
+            2: {
+                title: "Глава 2: Питер. Тайный чат",
+                content: `
+                    <p>Прошла неделя после той ночи в Москве. exteraGram стал их общим фетишем — они синхронизировали темы, делились скринами ghost mode и даже создавали секретный канал только для NSFW-сторис. Аю дразнила Экстера видео из душа, где вода стекала по её телу, а он отвечал селфи с турника, демонстрируя пресс и намёк на возбуждение под шортами.</p>
+
+                    <p>"Собирайся в Питер," — написала она однажды утром. "Тут экстераграммщики устраивают сходку в 'Коде' — баре для гиков у Невского. Хочу тебя там. Вживую."</p>
+
+                    <p>Экстер не стал спорить. Поезд Москва-Петербург — как загрузка в их клиентах: быстрая, стабильная.</p>
+
+                    <p>В 'Коде' — неоновые экраны с кодом Matrix, коктейли с QR-кодами и толпа фанатов модов. Они нашли друг друга в углу, под голографической проекцией Telegram-логотипа. Аю была в облегающем платье с вырезом до бедра, волосы собраны в хвост, губы накрашены красным — как unread badge.</p>
+
+                    <p>"Здесь слишком много глаз," — прошептал Экстер, прижимаясь сзади, рука уже на её талии. "Давай в ghost mode."</p>
+
+                    <p>Она вывела его на задний двор бара — узкий переулок, освещённый фонарями и вдалеке — огнями Невы. Стены граффити с эмодзи, мусорные баки и лёгкий туман от реки. Идеальное место для "приватного чата".</p>
+
+                    <p>Аю толкнула его к стене, расстегнула его джинсы одним движением. "Ты приехал быстро... как мой AyuGram парсит удалёнки." Её рот обхватил его член — горячо, влажно, язык кружил по головке, пока он не застонал, впиваясь пальцами в её волосы. Она сосала жадно, глядя вверх с вызовом, слюна стекала по подбородку.</p>
+
+                    <p>Экстер не выдержал: поднял её, задрал платье. Без трусиков — мокрая, готовая. Он вошёл одним толчком, прижав к холодной кирпичной стене. Аю обхватила его ногами, царапая спину, крича: "Глубже! Как анти-делит сохраняет всё!" Движения были яростными — он трахал её стоя, бедра шлёпали о стену, её соки текли по ногам. Оргазм накрыл её первой: тело задрожало, она закусила его плечо, чтобы не орать на весь Питер.</p>
+
+                    <p>Экстер опустился на колени в грязи переулка, раздвинул её ноги и лизал клитор, проникая языком внутрь, пока пальцы не нашли точку G. Аю кончала снова, сжимая его голову бёдрами, шепча: "прсдртя, за этот перфоманс в новой локации."</p>
+
+                    <p>Потом она оседлала его на старом ящике — сверху, скача как в премиум-анимации, грудь подпрыгивает, соски твёрдые. Он сжимал её задницу, шлёпая, ускоряя ритм, пока не кончил внутрь, заполняя горячей струёй.</p>
+
+                    <p>Утром в отеле на Мойке они лежали, куря электронку, клиенты на зарядке. "Теперь Питер наш," — сказала Аю. "Следующая локация — твоя очередь выбрать."</p>
+
+                    <p>Экстер улыбнулся: "exteraGram знает все секретные места."</p>
+                `
+            },
+            3: {
+                title: "Глава 3: Сочи. Премиум-анимация",
+                content: `
+                    <p><em>Глава в разработке. Скоро Аю и Экстер отправятся на юг, где под пальмами и шумом моря их страсть достигнет новых высот премиум-анимации…</em></p>
+                    <p><strong>Продолжение следует.</strong></p>
+                `
+            }
+        };
+
+        let currentChapter = 1;
+        let isTransitioning = false;
+
+        function loadChapter(chapterNum = currentChapter, direction = 'select') {
+            if (isTransitioning) return;
+            
+            const contentEl = document.getElementById('content');
+            const navEl = document.getElementById('navigation');
+            const selectEl = document.getElementById('chapter');
+            
+            isTransitioning = true;
+            selectEl.classList.add('loading');
+
+            // Fade out текущего контента
+            contentEl.classList.add('fade-out');
+            navEl.classList.remove('show');
+
+            setTimeout(() => {
+                currentChapter = parseInt(chapterNum);
+                const chapter = chapters[currentChapter];
+
+                selectEl.value = currentChapter;
+                selectEl.classList.remove('loading');
+
+                // Определяем анимацию в зависимости от направления
+                let animationClass = 'slide-right';
+                if (direction === 'prev') {
+                    animationClass = 'slide-left';
+                } else if (direction === 'next') {
+                    animationClass = 'slide-right';
+                }
+
+                // Загружаем новый контент
+                contentEl.classList.remove('fade-out', 'slide-left', 'slide-right');
+                contentEl.innerHTML = `<h2>${chapter.title}</h2>${chapter.content.replace(/\n/g, '')}`;
+
+                // Анимируем параграфы по очереди
+                const paragraphs = contentEl.querySelectorAll('p');
+                paragraphs.forEach((p, index) => {
+                    p.style.animationDelay = `${index * 0.05}s`;
+                });
+
+                // Применяем слайд-анимацию
+                contentEl.classList.add(animationClass);
+
+                // Генерируем навигацию
+                let prev = '';
+                let next = '';
+
+                if (currentChapter > 1) {
+                    prev = `<a href="javascript:loadChapter(${currentChapter - 1}, 'prev')" class="nav-btn">← Предыдущая глава</a>`;
+                } else {
+                    prev = `<span class="nav-btn disabled">Нет предыдущей главы</span>`;
+                }
+
+                if (currentChapter < Object.keys(chapters).length) {
+                    next = `<a href="javascript:loadChapter(${currentChapter + 1}, 'next')" class="nav-btn">Следующая глава →</a>`;
+                } else {
+                    next = `<span class="nav-btn disabled">Конец</span>`;
+                }
+
+                navEl.innerHTML = prev + next;
+                navEl.classList.add('show');
+
+                // Сбрасываем флаги после анимации
+                setTimeout(() => {
+                    contentEl.classList.remove(animationClass);
+                    isTransitioning = false;
+                }, 600);
+
+            }, 300);
+        }
+
+        // Загрузка первой главы при открытии с начальной анимацией
+        window.onload = () => {
+            setTimeout(() => loadChapter(1, 'select'), 100);
+        };
+    </script>
+</body>
+</html>
